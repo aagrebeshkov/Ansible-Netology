@@ -16,3 +16,11 @@ services:
     environment:
       TZ: Europe/Moscow
     command: "tail -f /dev/null"
+
+  fedora:
+    image: pycontribs/fedora
+    restart: always
+    container_name: fedora
+    environment:
+      TZ: Europe/Moscow
+    command: "tail -f /dev/null"
