@@ -1,0 +1,18 @@
+version: '3.4'
+
+services:
+  centos7:
+    image: centos:7
+    container_name: centos7
+    restart: always
+    environment:
+      TZ: Europe/Moscow
+    command: "tail -f /dev/null"
+
+  ubuntu:
+    image: myubuntu:22.04
+    restart: always
+    container_name: ubuntu
+    environment:
+      TZ: Europe/Moscow
+    command: "tail -f /dev/null"
