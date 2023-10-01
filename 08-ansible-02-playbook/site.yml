@@ -1,0 +1,99 @@
+---
+- name: Install Clickhouse
+  hosts: clickhouse           # На каком хосте выполняем
+  handlers:                   # handlers для запуска сервиса
+    - name: Start clickhouse service
+      become: true                  # Выполнит с привилегиями sudo
+      ansible.builtin.service:
+        name: clickhouse-server     # Название сервиса
+        state: restarted            # действие - restart
+  tasks:
+    - name: Block for get clickhouse distrib
+      block:
+        - name: Get clickhouse distrib
+          ansible.builtin.get_url:      # используем модуль get_url для загрузки дистрибутива
+            url: "https://packages.clickhouse.com/rpm/stable/{{ item }}-{{ clickhouse_version }}.noarch.rpm"    # URL по которому загрузить файл
+            dest: "./{{ item }}-{{ clickhouse_version }}.rpm"         # dest - путь куда загрузится файл. Переменная прописана в файле vars.yml
+            mode: '0655'
+          with_items: "{{ clickhouse_packages }}"                     # в переменной clickhouse_packages хранятся пакеты для clickhouse в файле vars.yml
+      rescue:                                   # модуль rescue выполняется, если падает основной таск с ошибкой
+        - name: Get clickhouse distrib
+          ansible.builtin.get_url:
+            url: "https://packages.clickhouse.com/rpm/stable/clickhouse-common-static-{{ clickhouse_version }}.x86_64.rpm"
+            dest: "./clickhouse-common-static-{{ clickhouse_version }}.rpm"
+            mode: '0655'
+
+    - name: Install clickhouse packages
+      become: true
+      ansible.builtin.yum:        # Вызом модуля yum для установки пакетов
+        name:
+          - clickhouse-common-static-{{ clickhouse_version }}.rpm
+          - clickhouse-client-{{ clickhouse_version }}.rpm
+          - clickhouse-server-{{ clickhouse_version }}.rpm
+      notify: Start clickhouse service           # запуск handlers после выполнения установки через yum
+    - name: Flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: Block for checking service clickhouse status
+      block:
+        - name: Checking service clickhouse status
+          ansible.builtin.command: systemctl status "{{ item }}"    # запускает команду по проверке статуса сервиса
+          with_items:
+            - clickhouse-server
+          register: clickhouse_server_status    # В пемеменной clickhouse_server_status записали результат вывода команды.
+                                                # посмотреть значение "- debug: var=clickhouse_server_status"
+          changed_when: true
+      rescue:                        # модуль rescue выполняется, если падает основной таск с ошибкой
+        - name: Start clickhouse service
+          become: true                  # Выполнит с привилегиями sudo
+          ansible.builtin.service:
+            name: clickhouse-server     # Название сервиса
+            state: restarted            # действие - restart
+
+    - name: Verify clickhouse-server is listening on 9000
+      ansible.builtin.wait_for:                      # проверяет, что порт 9000 слушается с таймаутом 5 сек
+        port: 9000
+        timeout: 5
+
+    - name: Create database
+      ansible.builtin.command: "clickhouse-client -q 'create database logs;'"
+      register: create_db        # в create_db записали результат вывода команды строкой выше. посмотреть значение можно через "- debug: var=create_db"
+      failed_when: create_db.rc != 0 and create_db.rc != 82     # Задача упадет, если код возврата не равен 0 и не равен 82 (82 - Database logs already exists)
+      changed_when: create_db.rc == 0                           # Пометит задачу как измененную, если код возврата будет равен 0
+
+- name: Install Vector
+  hosts: clickhouse
+  tasks:
+    - name: Create a directory if does not exist {{ destin_vector_folder }}
+      become: true
+      ansible.builtin.file:
+        path: "{{ destin_vector_folder }}"
+        state: directory
+        mode: '0655'
+    - name: Get Vector distrib
+      become: true
+      ansible.builtin.get_url:
+        url: "https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-{{ arch }}-unknown-linux-musl.tar.gz"
+        dest: "{{ destin_vector_folder }}/vector-{{ vector_version }}-{{ arch }}-unknown-linux-musl.tar.gz"
+        mode: '0655'
+    - name: Extract vector distrib
+      become: true
+      ansible.builtin.unarchive:
+        src: "{{ destin_vector_folder }}/vector-{{ vector_version }}-{{ arch }}-unknown-linux-musl.tar.gz"
+        dest: "{{ destin_vector_folder }}"
+        remote_src: true
+    - name: Remove archive file with distrib Click House
+      become: true
+      ansible.builtin.file:
+        path: "{{ destin_vector_folder }}/vector-{{ vector_version }}-{{ arch }}-unknown-linux-musl.tar.gz"
+        state: absent
+    - name: Generate VECTOR.YAML file
+      become: true
+      ansible.builtin.template:
+        src: "{{ source_folder }}/vector.jinja2"
+        dest: "{{ destin_vector_folder }}/vector-x86_64-unknown-linux-musl/config/vector.yaml"
+        mode: '0644'
+    - name: Install Vector
+      become: true
+      ansible.builtin.command: cp -av {{ destin_vector_folder }}/vector-x86_64-unknown-linux-musl/etc/systemd/vector.service /etc/systemd/system
+      changed_when: true

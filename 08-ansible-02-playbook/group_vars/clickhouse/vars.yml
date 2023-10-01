@@ -1,0 +1,17 @@
+---
+clickhouse_version: "22.3.3.44"
+clickhouse_packages:
+  - clickhouse-client
+  - clickhouse-server
+  - clickhouse-common-static
+
+vector_version_rpm: "0.33.0-1"
+vector_version: "0.33.0"
+arch: "x86_64"
+
+source_folder: ./vectorConf
+destin_vector_folder: /opt/vector
+
+vector_type: "demo_logs"
+vector_format: "syslog"
+vector_interval: 1
