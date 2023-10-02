@@ -63,6 +63,12 @@
 
 - name: Install Vector
   hosts: clickhouse
+  handlers:
+    - name: Start vector service
+      become: true
+      ansible.builtin.service:
+        name: vector
+        state: restarted
   tasks:
     - name: Create a directory if does not exist {{ destin_vector_folder }}
       become: true
@@ -91,9 +97,9 @@
       become: true
       ansible.builtin.template:
         src: "{{ source_folder }}/vector.jinja2"
-        dest: "{{ destin_vector_folder }}/vector-x86_64-unknown-linux-musl/config/vector.yaml"
+        dest: "{{ destin_vector_folder }}/vector-{{ arch }}-unknown-linux-musl/config/vector.yaml"
         mode: '0644'
     - name: Install Vector
       become: true
-      ansible.builtin.command: cp -av {{ destin_vector_folder }}/vector-x86_64-unknown-linux-musl/etc/systemd/vector.service /etc/systemd/system
+      ansible.builtin.command: cp -av {{ destin_vector_folder }}/vector-{{ arch }}-unknown-linux-musl/etc/systemd/vector.service /etc/systemd/system
       changed_when: true
