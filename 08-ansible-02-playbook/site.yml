@@ -99,7 +99,9 @@
         src: "{{ source_folder }}/vector.jinja2"
         dest: "{{ destin_vector_folder }}/vector-{{ arch }}-unknown-linux-musl/config/vector.yaml"
         mode: '0644'
+      notify: Start vector service
     - name: Install Vector
       become: true
       ansible.builtin.command: cp -av {{ destin_vector_folder }}/vector-{{ arch }}-unknown-linux-musl/etc/systemd/vector.service /etc/systemd/system
       changed_when: true
+      notify: Start vector service
