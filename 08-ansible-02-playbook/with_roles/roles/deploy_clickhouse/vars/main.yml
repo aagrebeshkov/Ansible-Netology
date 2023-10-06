@@ -1,0 +1,6 @@
+---
+deploy_clickhouse_clickhouse_version: "22.3.3.44"
+deploy_clickhouse_clickhouse_packages:
+  - clickhouse-client
+  - clickhouse-server
+  - clickhouse-common-static
