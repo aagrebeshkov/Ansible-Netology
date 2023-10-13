@@ -1,0 +1,7 @@
+---
+# Handler fole for restart clickhouse service
+- name: Start clickhouse service
+  become: true
+  ansible.builtin.service:
+    name: clickhouse-server
+    state: restarted

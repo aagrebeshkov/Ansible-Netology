@@ -1,0 +1,7 @@
+---
+# Handler fole for restart Nginx service
+- name: Start nginx service
+  become: true
+  ansible.builtin.service:
+    name: nginx
+    state: restarted

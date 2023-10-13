@@ -1,0 +1,3 @@
+---
+deploy_lighthouse_conf_folder: "./roles/deploy_lighthouse/files"
+deploy_lighthouse_static: "/www/lighthouse"
