@@ -1,7 +1,7 @@
-lighthouse-role
+vector-role
 =========
 
-This role install lighthouse
+This role install vector
 
 Example Playbook
 ----------------
@@ -10,7 +10,7 @@ Including an example of how to use your role (for instance, with variables passe
 
     - hosts: servers
       roles:
-         - { role: lighthouse }
+         - { role: vector }
 
 License
 -------

@@ -1,7 +1,7 @@
 ---
-# handlers file for lighthouse-role
-- name: Start nginx service
+# handlers file for vector-role
+- name: Start vector service
   become: true
   ansible.builtin.service:
-    name: nginx
+    name: vector
     state: restarted

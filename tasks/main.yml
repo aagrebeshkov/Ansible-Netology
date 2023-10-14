@@ -1,37 +1,76 @@
 ---
-# tasks file for lighthouse-role
-- name: Install Git and Nginx packages
+# tasks file for vector-role
+- name: Create a directory if does not exist
   become: true
-  ansible.builtin.yum:
-    name:
-      - git
-      - nginx
-  notify: Start nginx service
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0655'
+  with_items:
+    - "{{ deploy_vector_destin_folder }}"
+    - "{{ deploy_vector_data_dir }}"
+    - "{{ deploy_vector_data_dir }}/validate_tmp"
+    - "/etc/vector"
 
-- name: Get LightHouse distrib
+- name: Get Vector distrib
   become: true
-  ansible.builtin.git:
-    repo: "https://github.com/VKCOM/lighthouse.git"
-    dest: "{{ deploy_lighthouse_static }}"
+  ansible.builtin.get_url:
+    url: "https://packages.timber.io/vector/{{ deploy_vector_version }}/vector-{{ deploy_vector_version }}-{{ deploy_vector_arch }}-unknown-linux-musl.tar.gz"
+    dest: "{{ deploy_vector_destin_folder }}/vector-{{ deploy_vector_version }}-{{ deploy_vector_arch }}-unknown-linux-musl.tar.gz"
+    mode: '0655'
 
-- name: Generate nginx.conf file
+- name: Extract vector distrib
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ deploy_vector_destin_folder }}/vector-{{ deploy_vector_version }}-{{ deploy_vector_arch }}-unknown-linux-musl.tar.gz"
+    dest: "{{ deploy_vector_destin_folder }}"
+    remote_src: true
+
+- name: Ensure group vector exists
+  become: true
+  ansible.builtin.group:
+    name: vector
+    state: present
+
+- name: Create user
+  become: true
+  ansible.builtin.user:
+    name: vector
+    group: vector
+
+- name: Install Vector
+  become: true
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: true
+    mode: '0655'
+    backup: true
+  loop:
+    - src: "{{ deploy_vector_destin_folder }}/vector-{{ deploy_vector_arch }}-unknown-linux-musl/etc/systemd/vector.service"
+      dest: /etc/systemd/system/vector.service
+    - src: "{{ deploy_vector_destin_folder }}/vector-{{ deploy_vector_arch }}-unknown-linux-musl/bin/vector"
+      dest: /usr/bin/vector
+  notify: Start vector service
+
+- name: Generate VECTOR.YAML file
   become: true
   ansible.builtin.template:
-    src: "nginx.jinja2"
-    dest: "/etc/nginx/nginx.conf"
+    src: "vector.jinja2"
+    dest: "/etc/vector/vector.yaml"
     mode: '0644'
     backup: true
-  notify: Start nginx service
+  notify: Start vector service
 
-- name: Block for checking service nginx status
+- name: Block for checking service vector status
   block:
-    - name: Checking service nginx status
+    - name: Checking service vector status
       ansible.builtin.command: systemctl status "{{ item }}"
       with_items:
-        - nginx
+        - vector
   rescue:
-    - name: Start nginx service
+    - name: Start vector service
       become: true
       ansible.builtin.service:
-        name: nginx
+        name: vector
         state: restarted
