@@ -93,6 +93,3 @@ variable "vm_resources" {
     }
   ]
 }
-
-
-
