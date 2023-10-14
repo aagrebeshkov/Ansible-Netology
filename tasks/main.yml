@@ -1,0 +1,37 @@
+---
+# tasks file for lighthouse-role
+- name: Install Git and Nginx packages
+  become: true
+  ansible.builtin.yum:
+    name:
+      - git
+      - nginx
+  notify: Start nginx service
+
+- name: Get LightHouse distrib
+  become: true
+  ansible.builtin.git:
+    repo: "https://github.com/VKCOM/lighthouse.git"
+    dest: "{{ deploy_lighthouse_static }}"
+
+- name: Generate nginx.conf file
+  become: true
+  ansible.builtin.template:
+    src: "nginx.jinja2"
+    dest: "/etc/nginx/nginx.conf"
+    mode: '0644'
+    backup: true
+  notify: Start nginx service
+
+- name: Block for checking service nginx status
+  block:
+    - name: Checking service nginx status
+      ansible.builtin.command: systemctl status "{{ item }}"
+      with_items:
+        - nginx
+  rescue:
+    - name: Start nginx service
+      become: true
+      ansible.builtin.service:
+        name: nginx
+        state: restarted

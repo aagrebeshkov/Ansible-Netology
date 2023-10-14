@@ -1,0 +1,4 @@
+---
+# vars file for lighthouse-role
+deploy_lighthouse_conf_folder: "./roles/deploy_lighthouse/templates"
+deploy_lighthouse_static: "/www/lighthouse"
