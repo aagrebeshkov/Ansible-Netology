@@ -1,11 +1,11 @@
+- [Установка ClickHouse](#Установка-ClickHouse)
+- [Установка Vector](#Установка-Vector)
+- [Установка LightHouse](#Установка-LightHouse)
+- [Tags](#Tags)
+- [Роли](#Роли)
 
-- [Установка ClickHouse](#Установка ClickHouse)
-- [Установка Vector](#Установка Vector)
-
-## Ansible-Playbook для установки ClickHouse и Vector
-В данном playbook описано установка ПО ClickHouse и Vector
-
-Переменные прописаны в файле group_vars/clickhouse/vars.yml
+## Ansible-Playbook для установки ClickHouse, LiteHouse и Vector
+В данном playbook описано установка ПО ClickHouse, LiteHouse и Vector
 
 ## Установка ClickHouse
 Установка ClickHouse выполняется из RPM пакета. Загрузка RPM пакета осуществляется с сайта https://packages.clickhouse.com.
@@ -27,8 +27,21 @@ RPM пакет включает в себя пакеты для:
 Версия и архитектура системы для, которой предназначен дистрибутив параметрезированы и объявлены в переменных vector_version и arch.
 
 После загрузки дистрибутива происходит извлечение файлов из архива и последующее удаление tar архива.
-Так же реализована генерация конфигурационного файла vector.yaml из шаблона vector.jinja2, который расположен в директории source_folder.
+Реализована генерация конфигурационного файла vector.yaml из шаблона vector.jinja2, который расположен в директории source_folder.
 
+## Установка LightHouse
+LightHouse состоит из http сервера Nginx и статических файлов из git репозитория https://github.com/VKCOM/lighthouse.git. Установка Nginx выполняется из RPM пакета.
+Директория для статических файлов и конфига LightHouse параметрезированы и объявлены в переменных deploy_lighthouse_static и deploy_lighthouse_conf_folder.
 
-!!! Добавить инфу про теги !!!
+Реализована генерация конфигурационного файла nginx.conf из шаблона nginx.jinja2.
 
+## Tags
+Для каждой роли обозначены теги с названиями: clickhouse, vector, lighthouse
+
+## Роли
+Роли загружены в Git репозиторий. Ссылки на Git репозиторий прописаны в файле requirements.yml
+Для загрузки ролей из файла необходимо использовать команду:
+
+```bash
+ansible-galaxy install -r requirements.yml -p roles
+```
