@@ -1,0 +1,45 @@
+---
+
+- name: VECTOR | Ensure vector group
+  group:
+    name: "{{ vector_group }}"
+    system: yes
+    state: present
+
+- name: VECTOR | Ensure vector user
+  user:
+    name: "{{ vector_user }}"
+    group: "{{ vector_group }}"
+    groups: "{{ vector_groups | default('') }}"
+    system: yes
+    shell: /usr/sbin/nologin
+    createhome: no
+    append: True
+
+- name: VECTOR | Ensure  paths
+  file:
+    dest: "{{ item }}"
+    owner: "{{ vector_user }}"
+    group: "{{ vector_group }}"
+    state: directory
+  with_items:
+    - "{{ vector_dirs_paths }}"
+
+- name: VECTOR | Check vector version
+  command: "{{ vector_exec_name }} --version"
+  register: vector_check
+  changed_when: false
+  ignore_errors: true
+
+- name: VECTOR | Download package
+  apt:
+    deb: "{{ vector_deb_package }}"
+  when: vector_version not in vector_check and ansible_distribution == "Ubuntu"
+
+- name: Vector | Install package for CentOS
+  become: true
+  ansible.builtin.yum:
+    name: "{{ vector_rpm_package }}"
+    state: present
+    disable_gpg_check: true
+  when: vector_version not in vector_check and ansible_distribution == "CentOS" 

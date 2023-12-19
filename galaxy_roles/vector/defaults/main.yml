@@ -1,0 +1,25 @@
+---
+
+vector_version: 0.22.3
+
+vector_rpm_package: https://packages.timber.io/vector/{{ vector_version }}/vector-{{ vector_version }}-1.x86_64.rpm
+vector_deb_package: https://packages.timber.io/vector/{{ vector_version }}/vector_{{ vector_version }}-1_amd64.deb
+
+
+vector_bin_path: "/usr/bin"
+vector_dirs_paths:
+  - "{{ vector_bin_path }}"
+vector_exec_name: vector
+vector_env_path: "/etc/default/vector"
+
+
+vector_user: vector
+vector_group: vector
+
+
+vector_log_output: journal
+
+vector_config_template_path: "vector.toml.j2"
+vector_service_template_path: "vector.service.j2"
+
+vector_data_dir: "/var/lib/vector"

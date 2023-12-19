@@ -1,0 +1,22 @@
+---
+# This is an example playbook to execute Ansible tests.
+
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+
+  - name: Ensure vector service is started and enabled
+    ansible.builtin.service:
+      name: vector
+      state: started
+      enabled: true
+    changed_when: false
+ 
+  - name: Validate vector config file
+    ansible.builtin.command: "vector validate --no-environment --config-yaml vector.yml"
+    register: validate_result
+    changed_when: false
+
+  - name: Debug out var
+    ansible.builtin.debug: var=validate_result.stdout_lines

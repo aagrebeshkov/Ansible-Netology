@@ -1,0 +1,17 @@
+---
+all:
+  hosts:
+    clickhouse-01:
+      ansible_host: 192.168.1.125
+      host_vars:
+        clickhouse_version: "22.3.3.44"
+        clickhouse_packages:
+          - clickhouse-client
+          - clickhouse-server
+          - clickhouse-common-static
+        vector_version: "0.22.3"
+    lighthouse-01:
+      ansible_host: 192.168.1.125
+  vars:
+    ansible_connection: ssh
+    ansible_user: ansible

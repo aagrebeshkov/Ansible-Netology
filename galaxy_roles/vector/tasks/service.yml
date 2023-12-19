@@ -1,0 +1,17 @@
+---
+
+- name: VECTOR | Copy Daemon script
+  template:
+    src: "{{ vector_service_template_path }}"
+    dest: /etc/systemd/system/vector.service
+    mode: 0644
+    owner: root
+    group: root
+  notify: restart vector
+
+- name: VECTOR | Configuring service
+  systemd:
+    name: vector
+    state: started
+    enabled: true
+    daemon_reload: true
