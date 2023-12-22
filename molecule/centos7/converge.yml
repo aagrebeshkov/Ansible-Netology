@@ -1,0 +1,10 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: "Include vector_role"
+      include_role:
+        name: "vector_role"          
+      vars:
+        use_backend: yum

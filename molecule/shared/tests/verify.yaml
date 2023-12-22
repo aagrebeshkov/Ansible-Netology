@@ -1,0 +1,25 @@
+---
+# This is an example playbook to execute Ansible tests.
+- name: Verify
+  hosts: all
+  gather_facts: true  
+  tasks:
+    - name: "Include vector_role"
+      include_role:
+        name: "vector_role"
+
+    - name: 'Gather Vector Config Files Stats'
+      ansible.builtin.stat:
+        path: "{{ vector_config_dir }}/vector.yml"
+      become: true
+      register: ch_config_files
+
+    - name: Populate service facts
+      ansible.builtin.service_facts:
+
+    - name: 'Assert Vector Service'
+      ansible.builtin.assert:
+        that:
+          - "'{{ vector }}' in ansible_facts.services"
+          - "'running' == ansible_facts.services['vector'].state"
+          - "'enabled' == ansible_facts.services['vector'].status"          
